@@ -1,3 +1,5 @@
+include <BOSL2/std.scad>
+
 SegmentSizeX = 49;           // Width of a single segment (1x1)
 SegmentSizeY = SegmentSizeX; // Depth of a single segment (1x1)
 GridSegmentsX = 3;           // Grid: Numbers of segmetns in X axis (width)
@@ -20,37 +22,49 @@ BoxHeightUnits =
 LipTop = (GridHeight + StackOverlap + BoxWallThickness / 4 + BoxTolerance) + 0.4; // Lip: Distance from top
 LipWidth = SegmentSizeX - 2 * BoxWallThickness;                                   //
 LipHeight = 15;                                                                   //
-LipStickerWidth = 13;                                                             //
+LipStickerWidth = 13;
+
+radius = 2 * BoxWallThickness; //
+nothing = 0.01;
 
 module Cutout()
 {
-    
 
-    translate([0, 0, -GridHeight/2]) 
-    linear_extrude(GridHeight * 2)
-        square(SegmentSizeY - 4 * BoxWallThickness);
+    // down(GridHeight/2)
+    translate([ radius, radius, 0 ])
+    {
+        union()
+        {
+            prismoid(SegmentSizeY - 4 * BoxWallThickness, SegmentSizeY - 2 * BoxWallThickness, GridHeight,
+                     rounding2 = radius, anchor = BOTTOM + LEFT + FRONT);
+
+            // down(1) cuboid([ SegmentSizeY - 4 * BoxWallThickness, SegmentSizeY - 4 * BoxWallThickness, 1 ],
+            //                anchor = BOTTOM + LEFT + FRONT);
+
+            // translate([ -radius / 2, -radius / 2, GridHeight ])
+            //     prismoid(SegmentSizeY - 2 * BoxWallThickness, SegmentSizeY - 2 * BoxWallThickness, 10,
+            //              rounding = radius, anchor = BOTTOM + LEFT + FRONT);
+        }
+    }
 }
 
 module Grid()
 {
-    radius = 2 * BoxWallThickness;
 
-    //square(SegmentSizeY); // todo radius
-    
-    
-    difference() 
+    // square(SegmentSizeY); // todo radius
+
+    difference()
     {
-        cube([SegmentSizeX * GridSegmentsX, SegmentSizeY * GridSegmentsY, GridHeight]);
-        
+        cube([ SegmentSizeX * GridSegmentsX, SegmentSizeY * GridSegmentsY, GridHeight ]);
 
-        for (i = [0:GridSegmentsX-1]) {
-            for (j = [0:GridSegmentsY-1]) {
-           translate([i * SegmentSizeX, j * SegmentSizeY, 0]) translate([radius, radius, 0]) Cutout(); // inner cut out
+        for (i = [0:GridSegmentsX - 1])
+        {
+            for (j = [0:GridSegmentsY - 1])
+            {
+                translate([ i * SegmentSizeX, j * SegmentSizeY, 0 ]) scale([1, 1, 1+2*nothing]) down(nothing)  Cutout();
+            }
         }
-        }
-
     }
-
 }
 
 Grid();
